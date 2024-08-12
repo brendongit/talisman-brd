@@ -17,12 +17,12 @@ def move_to_initial_point():
 def select_mob():
     pyautogui.press('tab')
 
-def use_hability():
-    pyautogui.press('3')
-    time.sleep(0.5)
+def use_hability(): # Tamer
     pyautogui.press('1')
     time.sleep(0.5)
-    pyautogui.press('3')
+    pyautogui.press('2')
+    time.sleep(0.5)
+    pyautogui.press('1')
 
 def check_dead_mob():
     mob = pyautogui.locateCenterOnScreen(mob_image)
