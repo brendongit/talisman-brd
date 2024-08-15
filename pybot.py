@@ -1,58 +1,78 @@
 import pyautogui
 import time
-import os
+from pynput import mouse
 
-initial_point = (100, 200) # (x, y) ponto inicial
-collect_range = ((300, 400), (500, 600)) # Range x1, y1, x2, y2 para coleta autopick
+# Variáveis globais para armazenar a coordenada do mouse
+mouse_position = None
 
-prints = os.path.join(os.path.dirname(__file__), 'prints')
-bag_image = os.path.join(prints, 'bag.png')
-mob_image = os.path.join(prints, 'mob.png')
-pick_up_image = os.path.join(prints, 'pick_up.png')
+# Função para capturar coordenada do mouse ao clicar
+def on_click(x, y, button, pressed):
+    global mouse_position
+    if pressed and button == mouse.Button.left:
+        mouse_position = (x, y)
+        print(f"Coordenada do mouse armazenada: {mouse_position}")
+        return False  # Parar o listener após capturar a coordenada
 
-def move_to_initial_point():
-    pyautogui.moveTo(initial_point[0], initial_point[1], duration=1)
-    pyautogui.click()
+# Inicializa o listener do mouse
+listener = mouse.Listener(on_click=on_click)
+listener.start()
 
-def select_mob():
-    pyautogui.press('tab')
+# Aguarde o usuário clicar para armazenar a coordenada do mouse
+print("Clique com o botão esquerdo do mouse para armazenar a coordenada...")
+listener.join()
 
-def use_hability(): # Tamer
-    pyautogui.press('1')
-    time.sleep(0.5)
-    pyautogui.press('2')
-    time.sleep(0.5)
-    pyautogui.press('1')
+# Função para atacar o mob
+def attack_mob(duration=3):
+    start_time = time.time()
+    while time.time() - start_time < duration:
+        pyautogui.press('3')  # Simula o ataque
+        time.sleep(0.1)  # Intervalo entre ataques, ajuste conforme necessário
 
-def check_dead_mob():
-    mob = pyautogui.locateCenterOnScreen(mob_image)
-    if mob:
-        return True
-    return False
+# Função para procurar e clicar no botão "pick up"
+def click_pick_up():
+    timeout = 5  # Tempo máximo de espera em segundos
+    start_time = time.time()
 
-def collect_itens():
-    for x in range(collect_range[0][0], collect_range[1][0], 10): # Varre o eixo x com um passo de 10 pixels
-        for y in range(collect_range[0][1], collect_range[1][1], 10): # Varre o eixo y com um passo de 10 pixels
-            pyautogui.moveTo(x, y)
-            # Verifica se a imagem da bag está na tela
-            time.sleep(0.1)
-            if pyautogui.locateCenterOnScreen(bag_image, confidence=0.8):
-                pyautogui.rightClick() # Clica com o botão direito para abrir o menu de coleta
-                time.sleep(0.5) # Tempo de espera para abrir o menu
-                pyautogui.click(pick_up_image) # Clica na opção "pick up"
-                time.sleep(1) # Tempo de espera para coletar o item
-                break
-            
+    while time.time() - start_time < timeout:
+        sacola_location = pyautogui.locateCenterOnScreen('sacola.png')
+        if sacola_location:
+            pyautogui.rightClick(sacola_location)  # Abre o menu de itens
+            time.sleep(1)  # Aguarda o menu abrir
+            # Localiza e clica no botão "pick up"
+            pick_up_location = pyautogui.locateCenterOnScreen('pick_up.png')
+            if pick_up_location:
+                pyautogui.click(pick_up_location)
+                return  # Sai da função após clicar no botão "pick up"
+        time.sleep(1)  # Aguarda 1 segundo antes de tentar novamente
+
+    print("Drop não encontrado")  # Log se a sacola não for encontrada
+
+# Função para circular o mouse
+def circle_mouse():
+    screen_width, screen_height = pyautogui.size()
+    center_x, center_y = screen_width / 2, screen_height / 2
+    radius = min(screen_width, screen_height) / 2
+    duration = 5  # Duração em segundos
+    end_time = time.time() + duration
+
+    while time.time() < end_time:
+        for angle in range(0, 360, 5): # Itera sobre um intervalo de ângulos em graus, de 0 a 360, em incrementos de 5 graus.
+            rad = angle * (3.14159 / 180)  # Converte o ângulo para radianos
+            x = int(center_x + radius * pyautogui.cos(rad))  # Calcula a posição x
+            y = int(center_y + radius * pyautogui.sin(rad))  # Calcula a posição y
+            pyautogui.moveTo(x, y)  # Move o mouse para a posição calculada
+            time.sleep(0.01)  # Pausa para criar um movimento mais suave
+
+# Função principal do bot
 def main():
     while True:
-        move_to_initial_point()
-        select_mob()
-        use_hability()
-        time.sleep(1)
-        if check_dead_mob():
-            collect_itens() # Coleta os itens após matar os mobs
-            move_to_initial_point()
-        time.sleep(1) # Tempo de espera para o próximo ciclo
+        attack_mob(duration=3)
+        time.sleep(2)  # Tempo para garantir que o mob esteja morto
+        circle_mouse()
+        click_pick_up()
+        pyautogui.press('tab')  # Mudar para o próximo mob
+        time.sleep(1)  # Tempo entre as ações
 
-if __name__ == '__main__':
+# Execute o bot
+if __name__ == "__main__":
     main()
