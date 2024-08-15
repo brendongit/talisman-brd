@@ -34,9 +34,9 @@ def click_pick_up():
     start_time = time.time()
 
     while time.time() - start_time < timeout:
-        sacola_location = pyautogui.locateCenterOnScreen('sacola.png')
-        if sacola_location:
-            pyautogui.rightClick(sacola_location)  # Abre o menu de itens
+        bag_location = pyautogui.locateCenterOnScreen('bag.png')
+        if bag_location:
+            pyautogui.rightClick(bag_location)  # Abre o menu de itens
             time.sleep(1)  # Aguarda o menu abrir
             # Localiza e clica no botão "pick up"
             pick_up_location = pyautogui.locateCenterOnScreen('pick_up.png')
@@ -45,7 +45,7 @@ def click_pick_up():
                 return  # Sai da função após clicar no botão "pick up"
         time.sleep(1)  # Aguarda 1 segundo antes de tentar novamente
 
-    print("Drop não encontrado")  # Log se a sacola não for encontrada
+    print("Drop não encontrado")  # Log se a bag não for encontrada
 
 # Função para circular o mouse
 def circle_mouse():
